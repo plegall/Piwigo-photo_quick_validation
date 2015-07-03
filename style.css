@@ -1,0 +1,42 @@
+.confirm {
+  display:none;
+  font-size:100px;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin-left:-80px;
+  margin-top:-80px;
+  color:white;
+  background-color:black;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid white;
+  border-radius:100px !important;
+  height:160px;
+  width:160px;
+  line-height:160px;
+  text-align:center;
+  z-index:10;
+}
+
+.fotorama__pqv-icon {
+  width: 32px;
+  height: 32px;
+  bottom: 2px;
+  left: 2px;
+  z-index: 20;
+  position: absolute;
+  color:white;
+  font-size:25px;
+  cursor:normal;
+}
+#thumbnails li .pqv-validated {
+  position:absolute;
+  top:0;
+  left:0;
+  color:white;
+  background-color:black;
+  background: rgba(0, 0, 0, 0.5);
+  font-size:18px;
+  border-radius:100px !important;
+  margin:5px;
+}

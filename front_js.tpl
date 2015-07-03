@@ -1,4 +1,5 @@
 {combine_script id='jquery.touchSwipe' load='footer' require='jquery' path='plugins/photo_quick_validation/jquery.touchSwipe.min.js'}
+{combine_css path="plugins/photo_quick_validation/style.css"}
 
 {footer_script}
 jQuery(function() {
