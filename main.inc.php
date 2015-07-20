@@ -106,6 +106,40 @@ UPDATE '.IMAGES_TABLE.'
   return array('pqv_validated' => $pqv_validated_new);
 }
 
+/**
+ * load the css early
+ */
+add_event_handler('loc_begin_page_header', 'pqv_begin_page_header');
+function pqv_begin_page_header()
+{
+  global $template, $page;
+  
+  if (!pqv_is_active())
+  {
+    return;
+  }
+
+  $template->set_filename('front_css', realpath(PQV_PATH.'front_css.tpl'));
+  $template->parse('front_css');
+}
+
+/**
+ * load the js lately, after Fotorama
+ */
+add_event_handler('loc_end_page_tail', 'pqv_end_page_tail');
+function pqv_end_page_tail()
+{
+  global $template, $page;
+  
+  if (!pqv_is_active())
+  {
+    return;
+  }
+
+  $template->set_filename('front_js', realpath(PQV_PATH.'front_js.tpl'));
+  $template->parse('front_js');
+}
+
 add_event_handler('loc_end_section_init', 'pqv_end_section_init');
 function pqv_end_section_init()
 {
@@ -115,10 +149,6 @@ function pqv_end_section_init()
   {
     return;
   }
-
-  $template->set_filename('front_js', realpath(PQV_PATH.'front_js.tpl'));
-  $template->parse('front_js');
-
 
   if (empty($page['items']))
   {

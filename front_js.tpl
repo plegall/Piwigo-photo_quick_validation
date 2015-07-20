@@ -1,5 +1,4 @@
-{combine_script id='jquery.touchSwipe' load='footer' require='jquery' path='plugins/photo_quick_validation/jquery.touchSwipe.min.js'}
-{combine_css path="plugins/photo_quick_validation/style.css"}
+{combine_script id='jquery.touchSwipe' load='footer' require='jquery' path='plugins/photo_quick_validation/jquery.touchSwipe.js'}
 
 {footer_script}
 jQuery(function() {
@@ -75,7 +74,7 @@ jQuery(function() {
     });
   }
 
-  jQuery('.fotorama__stage').swipe({
+  jQuery('.fotorama__stage, #theImage').swipe({
     threshold:150,
     swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
 
