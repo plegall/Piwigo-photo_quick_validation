@@ -74,7 +74,7 @@ function pqv_add_methods($arr)
 
 function ws_pqv_update($params, &$service)
 {
-  if (!pqv_is_active())
+  if (!pqv_is_active($params['image_id']))
   {
     return new PwgError(401, 'Access denied');
   }
@@ -130,7 +130,7 @@ add_event_handler('loc_end_page_tail', 'pqv_end_page_tail');
 function pqv_end_page_tail()
 {
   global $template, $page;
-  
+
   if (!pqv_is_active())
   {
     return;
@@ -199,13 +199,113 @@ SELECT
 /**
  * check permissions for the current user
  */
-function pqv_is_active()
+function pqv_is_active($image_id=null)
 {
-  global $user;
+  global $user, $page;
+
+  if (isset($page['pqv_is_active']))
+  {
+    return $page['pqv_is_active'];
+  }
+
+  // in case of API call to pwg.pqv.validate, we have no "section" loaded.
+  if (!isset($page['section']))
+  {
+    if (!isset($image_id))
+    {
+      return false;
+    }
+
+    // in which albums is the photo?
+    $query = '
+SELECT
+    id,
+    status
+  FROM '.IMAGE_CATEGORY_TABLE.'
+    JOIN '.CATEGORIES_TABLE.' ON category_id = id
+  WHERE image_id = '.$image_id.'
+;';
+    $categories = query2array($query);
+
+    if (empty($categories))
+    {
+      return false;
+    }
+    
+    $public_ids = array();
+    $private_ids = array();
+
+    foreach ($categories as $category)
+    {
+      if ('private' == $category['status'])
+      {
+        $private_ids[] = $category['id'];
+      }
+      else
+      {
+        $public_ids[] = $category['id'];
+      }
+    }
+
+    // in case we only have private albums, we must find all granted group amond validation groups
+    if (empty($public_ids))
+    {
+      $access_groups = array();
+      
+      foreach ($private_ids as $private_id)
+      {
+        $query = '
+SELECT
+    group_id
+  FROM '.GROUP_ACCESS_TABLE.'
+  WHERE cat_id = '.$private_id.'
+    AND group_id IN ('.implode(',', pqv_get_validation_groups()).')
+;';
+        $access_groups = array_merge($access_groups, query2array($query, null, 'group_id'));
+      }
+    }
+  }
+  else
+  {
+    // pqv only works in albums
+    if (!isset($page['category']))
+    {
+      $page['pqv_is_active'] = false;
+      return $page['pqv_is_active'];
+    }
+    
+    if ('private' == $page['category']['status'])
+    {
+      // in case the album is private, permission must be explicitely granted
+      // to a "validation" group
+      $query = '
+SELECT
+    group_id
+  FROM '.GROUP_ACCESS_TABLE.'
+  WHERE cat_id = '.$page['category']['id'].'
+    AND group_id IN ('.implode(',', pqv_get_validation_groups()).')
+;';
+      $access_groups = query2array($query, null, 'group_id');
+    }
+  }
+
+  if (isset($access_groups) and empty($access_groups))
+  {
+    $page['pqv_is_active'] = false;
+    return $page['pqv_is_active'];
+  }
 
   if (!isset($user['id']))
   {
-    return false;
+    $page['pqv_is_active'] = false;
+    return $page['pqv_is_active'];
+  }
+
+  $group_ids = pqv_get_validation_groups();
+  if (isset($access_groups))
+  {
+    // if the album is granted only to a subset of validation groups
+    $group_ids= $access_groups;
   }
 
   $query = '
@@ -214,15 +314,45 @@ SELECT
   FROM '.GROUPS_TABLE.'
     JOIN '.USER_GROUP_TABLE.' ON group_id = id
   WHERE user_id = '.$user['id'].'
-    AND pqv_enabled = \'true\'
+    AND group_id IN ('.implode(',', $group_ids).')
 ;';
   list($counter) = pwg_db_fetch_row(pwg_query($query));
 
   if ($counter > 0)
   {
-    return true;
+    $page['pqv_is_active'] = true;
+    return $page['pqv_is_active'];
   }
 
-  return false;
+  $page['pqv_is_active'] = false;
+  return $page['pqv_is_active'];
+}
+
+/**
+ * return the list of group ids permitted to validate
+ */
+function pqv_get_validation_groups()
+{
+  global $page;
+
+  if (isset($page['pqv_group_ids']))
+  {
+    return $page['pqv_group_ids'];
+  }
+  
+  $query = '
+SELECT
+    id
+  FROM '.GROUPS_TABLE.'
+  WHERE pqv_enabled = \'true\'
+;';
+  $page['pqv_group_ids'] = query2array($query, null, 'id');
+
+  if (empty($page['pqv_group_ids']))
+  {
+    $page['pqv_group_ids'][] = -1;
+  }
+
+  return $page['pqv_group_ids'];
 }
 ?>
