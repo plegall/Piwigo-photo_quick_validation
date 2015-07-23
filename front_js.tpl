@@ -1,6 +1,8 @@
 {combine_script id='jquery.touchSwipe' load='footer' require='jquery' path='plugins/photo_quick_validation/jquery.touchSwipe.js'}
 
 {footer_script}
+var swipeDir;
+
 jQuery(function() {
   function qselect_confirm(direction) {
     if (jQuery('.fotorama--fullscreen .confirm').size() == 0) {
@@ -75,10 +77,25 @@ jQuery(function() {
   }
 
   jQuery('.fotorama__stage, #theImage').swipe({
-    threshold:150,
-    swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
+    threshold: 0,
 
+    swipeStatus: function(event, phase, direction, distance, duration, fingerCount){
+
+       var fotorama = jQuery('.fotorama').data('fotorama')
+         , active;
+
+       // When direction changes = toggle options.swipe on fotorama instance
+       if(direction !== swipeDir){
+         swipeDir = direction;
+         active = (!(direction == 'up' || direction == 'down'));
+         fotorama.setOptions({ swipe: active });
+       }
+
+    },
+
+    swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
       if (direction == 'up' || direction == 'down') {
+        // console.log('qselect_confirm()', direction);
         qselect_confirm(direction);
       }
     }
