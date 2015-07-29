@@ -85,13 +85,13 @@ jQuery(function() {
   });
 
   document.onkeydown = function(e) {
-    if (e.keyCode == 80) { // "p"
+    if (e.keyCode == 80 || e.keyCode == 38) { // "p" or up arrow
       qselect_confirm('up');
       // return false;
       e.preventDefault();
     }
 
-    if (e.keyCode == 77) { // "m"
+    if (e.keyCode == 77 || e.keyCode == 40) { // "m" or down arrow
       qselect_confirm('down');
       // return false;
       e.preventDefault();
