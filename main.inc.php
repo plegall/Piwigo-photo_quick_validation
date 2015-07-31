@@ -136,8 +136,11 @@ function pqv_end_page_tail()
     return;
   }
 
-  $template->set_filename('front_js', realpath(PQV_PATH.'front_js.tpl'));
-  $template->parse('front_js');
+  if (script_basename() == 'picture')
+  {
+    $template->set_filename('front_js', realpath(PQV_PATH.'front_js.tpl'));
+    $template->parse('front_js');
+  }
 }
 
 add_event_handler('loc_end_section_init', 'pqv_end_section_init');
